@@ -5,7 +5,7 @@
     * https://api.elsevier.com"""
 
 
-import requests, json, time
+import requests, json, time, xmltodict
 from . import log_util
 from .__init__ import version
 try:
@@ -100,7 +100,7 @@ class ElsClient:
         headers = {
             "X-ELS-APIKey"  : self.api_key,
             "User-Agent"    : self.__user_agent,
-            "Accept"        : 'application/json'
+            "Accept"        : 'application/xml'
             }
         if self.inst_token:
             headers["X-ELS-Insttoken"] = self.inst_token
@@ -113,7 +113,7 @@ class ElsClient:
         self._status_code=r.status_code
         if r.status_code == 200:
             self._status_msg='data retrieved'
-            return json.loads(r.text)
+            return xmltodict.parse(r.text, dict_constructor=dict)
         else:
             self._status_msg="HTTP " + str(r.status_code) + " Error from " + URL + " and using headers " + str(headers) + ": " + r.text
             raise requests.HTTPError("HTTP " + str(r.status_code) + " Error from " + URL + "\nand using headers " + str(headers) + ":\n" + r.text)

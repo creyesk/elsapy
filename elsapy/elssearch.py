@@ -81,8 +81,10 @@ class ElsSearch():
                     if e['@ref'] == 'next':
                         next_url = e['@href']
                 api_response = els_client.exec_request(next_url)
-                self._results += api_response['search-results']['entry']         
-
+                if isinstance(api_response['search-results']['entry'], dict):
+                    self._results += [api_response['search-results']['entry']]
+                else:
+                    self._results += api_response['search-results']['entry']
     def hasAllResults(self):
         """Returns true if the search object has retrieved all results for the
             query from the index (i.e. num_res equals tot_num_res)."""
