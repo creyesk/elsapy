@@ -5,7 +5,7 @@
     * https://api.elsevier.com"""
 
 
-import requests, json, time
+import requests, json, time, xmltodict
 from . import log_util
 from .__init__ import version
 try:
@@ -88,7 +88,7 @@ class ElsClient:
         return self.__url_base
 
     # request/response execution functions
-    def exec_request(self, URL):
+    def exec_request(self, URL, response_format):
         """Sends the actual request; returns response."""
 
         ## Throttle request, if need be
@@ -100,20 +100,24 @@ class ElsClient:
         headers = {
             "X-ELS-APIKey"  : self.api_key,
             "User-Agent"    : self.__user_agent,
-            "Accept"        : 'application/json'
+            "Accept"        : 'application/' + response_format
             }
         if self.inst_token:
             headers["X-ELS-Insttoken"] = self.inst_token
         logger.info('Sending GET request to ' + URL)
-        r = requests.get(
-            URL,
-            headers = headers
-            )
+        r = requests.get(URL, headers = headers)
+
         self.__ts_last_req = time.time()
         self._status_code=r.status_code
         if r.status_code == 200:
             self._status_msg='data retrieved'
-            return json.loads(r.text)
+            if response_format=='json':
+                return json.loads(r.text)
+            elif response_format=='xml':
+                xml_dict = xmltodict.parse(r.text)
+                return json.loads(json.dumps(xml_dict))
+            else:
+                raise NotImplementedError(f"Can't handle {response_format} format")
         else:
             self._status_msg="HTTP " + str(r.status_code) + " Error from " + URL + " and using headers " + str(headers) + ": " + r.text
             raise requests.HTTPError("HTTP " + str(r.status_code) + " Error from " + URL + "\nand using headers " + str(headers) + ":\n" + r.text)

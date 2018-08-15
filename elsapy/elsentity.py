@@ -15,11 +15,12 @@ class ElsEntity(metaclass=ABCMeta):
 
     # constructors
     @abstractmethod
-    def __init__(self, uri):
+    def __init__(self, uri, response_format):
         """Initializes a data entity with its URI"""
         self._uri = uri
         self._data = None
         self._client = None
+        self._response_format = response_format
 
     # properties
     @property
@@ -32,6 +33,16 @@ class ElsEntity(metaclass=ABCMeta):
         """Set the URI of the entity instance"""
         self._uri = uri
     
+    @property
+    def response_format(self):
+        """Get the URI of the entity instance"""
+        return self._response_format
+
+    @uri.setter
+    def resonse_format(self, response_format):
+        """Set the URI of the entity instance"""
+        self._response_format = response_format       
+
     @property
     def id(self):
         """Get the dc:identifier of the entity instance"""
@@ -60,15 +71,16 @@ class ElsEntity(metaclass=ABCMeta):
 
     # modifier functions
     @abstractmethod
-    def read(self, payloadType, elsClient):
+    def read(self, payloadType, elsClient, response_format):
         """Fetches the latest data for this entity from api.elsevier.com.
             Returns True if successful; else, False."""
         if elsClient:
             self._client = elsClient;
         elif not self.client:
-            raise ValueError('''Entity object not currently bound to elsClient instance. Call .read() with elsClient argument or set .client attribute.''')
+            raise ValueError('''Entity object not currently bound to elsClient instance.
+                             Call .read() with elsClient argument or set .client attribute.''')
         try:
-            api_response = self.client.exec_request(self.uri)
+            api_response = self.client.exec_request(self.uri, self._response_format)
             if isinstance(api_response[payloadType], list):
                 self._data = api_response[payloadType][0]
             else:

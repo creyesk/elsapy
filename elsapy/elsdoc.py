@@ -27,14 +27,16 @@ class FullDoc(ElsEntity):
         return self._uri
 
     # constructors
-    def __init__(self, uri = '', sd_pii = '', doi = ''):
+    def __init__(self, uri='', sd_pii='', doi='', response_format='json'):
         """Initializes a document given a Scopus document URI or Scopus ID."""
         if uri and not sd_pii and not doi:
-            super().__init__(uri)
+            super().__init__(uri, response_format)
         elif sd_pii and not uri and not doi:
-            super().__init__(self.__uri_base + 'pii/' + str(sd_pii))
+            super().__init__(self.__uri_base + 'pii/' + str(sd_pii),
+                             response_format)
         elif doi and not uri and not sd_pii:
-            super().__init__(self.__uri_base + 'doi/' + str(doi))
+            super().__init__(self.__uri_base + 'doi/' + str(doi),
+                             response_format)
         elif not uri and not doi:
             raise ValueError('No URI, ScienceDirect PII or DOI specified')
         else:
@@ -44,7 +46,7 @@ class FullDoc(ElsEntity):
     def read(self, els_client = None):
         """Reads the JSON representation of the document from ELSAPI.
              Returns True if successful; else, False."""
-        if super().read(self.__payload_type, els_client):
+        if super().read(self.__payload_type, els_client, self._response_format):
             return True
         else:
             return False
