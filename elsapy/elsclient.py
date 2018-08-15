@@ -88,7 +88,7 @@ class ElsClient:
         return self.__url_base
 
     # request/response execution functions
-    def exec_request(self, URL, response_format):
+    def exec_request(self, URL, response_format='json'):
         """Sends the actual request; returns response."""
 
         ## Throttle request, if need be
