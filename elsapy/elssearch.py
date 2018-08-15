@@ -5,6 +5,7 @@
     * https://api.elsevier.com"""
 
 from . import log_util
+import pathlib, os, json
 
 logger = log_util.get_logger(__name__)
 
@@ -87,3 +88,17 @@ class ElsSearch():
         """Returns true if the search object has retrieved all results for the
             query from the index (i.e. num_res equals tot_num_res)."""
         return (self.num_res is self.tot_num_res)
+
+    def write(self, path= pathlib.Path.cwd() / 'data'):
+        """If data exists for the entity, writes it to disk as a .JSON file with
+             the url-encoded URI as the filename and returns True. Else, returns
+             False."""
+        if hasattr(self, '_results'):
+            dataPath = os.path.join(path, self.query + '.json')
+            os.makedirs(os.path.dirname(dataPath), exist_ok=True)
+            with open(dataPath, mode='w') as dump_file:
+                json.dump(self._results, dump_file)
+            return True
+        else:
+            logger.warning('No data to write for ' + self.query)
+            return False

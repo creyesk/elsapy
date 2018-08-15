@@ -4,7 +4,7 @@
     * https://dev.elsevier.com
     * https://api.elsevier.com"""
 
-import requests, json, urllib
+import requests, json, urllib, os
 from abc import ABCMeta, abstractmethod
 from . import log_util
 
@@ -15,7 +15,7 @@ class ElsEntity(metaclass=ABCMeta):
 
     # constructors
     @abstractmethod
-    def __init__(self, uri, response_format):
+    def __init__(self, uri, response_format='json'):
         """Initializes a data entity with its URI"""
         self._uri = uri
         self._data = None
@@ -93,15 +93,18 @@ class ElsEntity(metaclass=ABCMeta):
                 logger.warning(elm)
             return False
 
-    def write(self):
+    def write(self, path=None):
         """If data exists for the entity, writes it to disk as a .JSON file with
              the url-encoded URI as the filename and returns True. Else, returns
              False."""
+        if path is None:
+            path = self.client.local_dir
+
         if (self.data):
-            dataPath = self.client.local_dir / (urllib.parse.quote_plus(self.uri)+'.json')
-            with dataPath.open(mode='w') as dump_file:
+            dataPath = os.path.join(path, urllib.parse.quote_plus(self.uri)+'.json')
+            os.makedirs(os.path.dirname(dataPath), exist_ok=True)
+            with open(dataPath, mode='w') as dump_file:
                 json.dump(self.data, dump_file)
-                dump_file.close()
             logger.info('Wrote ' + self.uri + ' to file')
             return True
         else:
