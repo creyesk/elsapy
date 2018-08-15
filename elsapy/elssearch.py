@@ -94,10 +94,15 @@ class ElsSearch():
              the url-encoded URI as the filename and returns True. Else, returns
              False."""
         if hasattr(self, '_results'):
-            dataPath = os.path.join(path, self.query + '.json')
+            dataPath = os.path.join(path, 
+                       self.query[0:min(100,len(self.query))] + '.json')
             os.makedirs(os.path.dirname(dataPath), exist_ok=True)
             with open(dataPath, mode='w') as dump_file:
-                json.dump(self._results, dump_file)
+                try:
+                    summary = {self.query: [r['pii'] for r in self._results]}
+                except:
+                    summary = {self.query: 'No results.'}
+                json.dump(summary, dump_file)
             return True
         else:
             logger.warning('No data to write for ' + self.query)
